@@ -1,47 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import calculateWinner from './winner.js';
+import Board from './board.js';
 import './index.css';
 
-function Square(props) {
+function HistoryList(props) {
   return (
-    <button className="square" onClick={props.onClick}>
-      {props.value}
-    </button>
+    <li key={props.move} className={props.buttonClassName}>
+      <button className={props.buttonClassName} onClick={props.onClick}>
+        {props.desc}
+      </button> {props.moveDetail}
+    </li>
   );
-}
-
-class Board extends React.Component {
-  renderSquare(i, j) {
-    return (
-      <Square
-        value={this.props.squares[i][j]}
-        onClick={() => this.props.onClick(i, j)}
-      />
-    );
-  }
-
-  render() {
-    return (
-      <div>
-        <div className="board-row" col={0}>
-          {this.renderSquare(0, 0)}
-          {this.renderSquare(0, 1)}
-          {this.renderSquare(0, 2)}
-        </div>
-        <div className="board-row" col={1}>
-          {this.renderSquare(1, 0)}
-          {this.renderSquare(1, 1)}
-          {this.renderSquare(1, 2)}
-        </div>
-        <div className="board-row" col={2}>
-          {this.renderSquare(2, 0)}
-          {this.renderSquare(2, 1)}
-          {this.renderSquare(2, 2)}
-        </div>
-      </div>
-    );
-  }
 }
 
 class Game extends React.Component {
@@ -92,27 +62,43 @@ class Game extends React.Component {
     });
   }
 
+  renderHistoryMove() {
+    const history = this.state.history;
+    const stepActive = this.state.stepNumber;
+    const moves = history.map((step, move) => {
+      const desc = move ? `Go to move #${move}` : `Go to game start`;
+      const lastTurn = move === 0 ? null : `${(move % 2) === 0 ? 'O' : 'X'}`;
+      const moveDetail = lastTurn ? `${lastTurn} moves filling box (${history[move].columnFillRecord},${history[move].rowFillRecord})` : null;
+      const buttonClassName = stepActive === move ? 'selectedHistory' : 'unselectedButton';
+      return (
+        <HistoryList
+          key={move}
+          move={move}
+          buttonClassName={buttonClassName}
+          onClick={() => this.jumpTo(move)}
+          desc={desc}
+          moveDetail={moveDetail}
+        />
+      );
+    });
+    return moves;
+  }
+
+  renderNextMoveStatus(winner) {
+    if (winner) {
+      return `Winner: ${winner}`;
+    } else {
+      return `Next player turn: ${this.state.xIsNext ? 'X' : 'O'}`;
+    }
+  }
+
+
   render() {
     const history = this.state.history;
     const stepNumber = this.state.stepNumber;
     const winner = calculateWinner(history[stepNumber].squares);
-
-    const moves = history.map((step, move) => {
-      const desc = move ? `Go to move #${move}` : `Go to game start`;
-      const moveDetail = move === 0 ? null : `${(move % 2) === 0 ? 'O' : 'X'} moves filling box (${history[move].columnFillRecord},${history[move].rowFillRecord})`
-      return (
-        <li key={move}>
-          <button onClick={() => this.jumpTo(move)}>{desc}</button>{moveDetail}
-        </li>
-      )
-    });
-
-    let status;
-    if (winner) {
-      status = `Winner: ${winner}`;
-    } else {
-      status = `Next player turn: ${this.state.xIsNext ? 'X' : 'O'}`;
-    }
+    const moves = this.renderHistoryMove();
+    const status = this.renderNextMoveStatus(winner);
 
     return (
       <div className="game">
