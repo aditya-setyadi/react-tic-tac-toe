@@ -25,20 +25,22 @@ class Game extends React.Component {
           rowFillRecord: -1,
         }
       ],
-      stepNumber: 0,
+      sort: 'asc',
+      currentStepNumber: 0,
+      maxStepNumber: 0,
       xIsNext: true,
     }
   }
 
   jumpTo(step) {
     this.setState({
-      stepNumber: step,
+      currentStepNumber: step,
       xIsNext: (step % 2) === 0,
     });
   }
 
-  handleClick(i, j) {
-    const history = this.state.history.slice(0, this.state.stepNumber + 1);
+  handleBoardClick(i, j) {
+    const history = this.state.history.slice(0, this.state.currentStepNumber + 1);
     const current = history[history.length - 1];
     let colStepRecord = current.columnFillRecord;
     let rowStepRecord = current.rowFillRecord;
@@ -57,26 +59,36 @@ class Game extends React.Component {
     rowStepRecord = i;
     this.setState({
       history: history.concat([{ squares: newSquares, columnFillRecord: colStepRecord, rowFillRecord: rowStepRecord }]),
-      stepNumber: history.length,
+      maxStepNumber: history.length,
+      currentStepNumber: history.length,
       xIsNext: !this.state.xIsNext,
     });
   }
 
-  renderHistoryMove() {
+  sortButtonClick() {
+    const newSortStatus = this.state.sort === 'asc' ? 'desc' : 'asc';
+    this.setState({
+      sort: newSortStatus
+    })
+  }
+
+  renderHistoryMove(sort) {
     const history = this.state.history;
-    const stepActive = this.state.stepNumber;
+    const currentStep = this.state.currentStepNumber;
+    const maxStep = this.state.maxStepNumber;
     const moves = history.map((step, move) => {
-      const desc = move ? `Go to move #${move}` : `Go to game start`;
-      const lastTurn = move === 0 ? null : `${(move % 2) === 0 ? 'O' : 'X'}`;
-      const moveDetail = lastTurn ? `${lastTurn} moves filling box (${history[move].columnFillRecord},${history[move].rowFillRecord})` : null;
-      const buttonClassName = stepActive === move ? 'selectedHistory' : 'unselectedButton';
+      const sortMoves = sort === 'asc' ? move : maxStep - move;
+      const description = sortMoves ? `Go to move #${sortMoves}` : `Go to game start`;
+      const lastTurn = sortMoves === 0 ? null : `${(sortMoves % 2) === 0 ? 'O' : 'X'}`;
+      const moveDetail = lastTurn ? `${lastTurn} moves filling box (${history[sortMoves].columnFillRecord},${history[sortMoves].rowFillRecord})` : null;
+      const buttonClassName = currentStep === sortMoves ? 'selectedHistory' : 'unselectedButton';
       return (
         <HistoryList
-          key={move}
-          move={move}
+          key={sortMoves}
+          move={sortMoves}
           buttonClassName={buttonClassName}
-          onClick={() => this.jumpTo(move)}
-          desc={desc}
+          onClick={() => this.jumpTo(sortMoves)}
+          desc={description}
           moveDetail={moveDetail}
         />
       );
@@ -95,9 +107,9 @@ class Game extends React.Component {
 
   render() {
     const history = this.state.history;
-    const stepNumber = this.state.stepNumber;
+    const stepNumber = this.state.currentStepNumber;
     const winner = calculateWinner(history[stepNumber].squares);
-    const moves = this.renderHistoryMove();
+    const moves = this.renderHistoryMove(this.state.sort);
     const status = this.renderNextMoveStatus(winner);
 
     return (
@@ -105,11 +117,12 @@ class Game extends React.Component {
         <div className="game-board">
           <Board
             squares={history[stepNumber].squares}
-            onClick={(i, j) => this.handleClick(i, j)}
+            onClick={(i, j) => this.handleBoardClick(i, j)}
           />
         </div>
         <div className="game-info">
           <div>{status}</div>
+          <button onClick={() => this.sortButtonClick()}>SORT{this.state.sort === 'asc' ? ' DESCENDING' : ' ASCENDING'}</button>
           <ol>{moves}</ol>
         </div>
       </div>

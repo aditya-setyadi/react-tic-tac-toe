@@ -22,7 +22,7 @@ export default class Board extends React.Component {
     return row;
   }
 
-  renderColumn() {
+  renderBoard() {
     const column = this.props.squares.map((v, column) => {
       const row = this.renderRow(column);
       return (
@@ -35,7 +35,7 @@ export default class Board extends React.Component {
   render() {
     return (
       <div>
-        {this.renderColumn()}
+        {this.renderBoard()}
       </div>
     );
   }
