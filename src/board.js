@@ -9,33 +9,33 @@ function Square(props) {
 }
 
 export default class Board extends React.Component {
-  renderSquare(i, j) {
-    return (
-      <Square
-        value={this.props.squares[i][j]}
-        onClick={() => this.props.onClick(i, j)}
-      />
-    );
+  renderRow(column) {
+    const row = this.props.squares.map((v, row) => {
+      return (
+        <Square
+          key={row}
+          value={this.props.squares[column][row]}
+          onClick={() => this.props.onClick(column, row)}
+        />
+      )
+    });
+    return row;
+  }
+
+  renderColumn() {
+    const column = this.props.squares.map((v, column) => {
+      const row = this.renderRow(column);
+      return (
+        <div className="board-row" col={column} key={column}>{row}</div>
+      );
+    });
+    return column;
   }
 
   render() {
     return (
       <div>
-        <div className="board-row" col={0}>
-          {this.renderSquare(0, 0)}
-          {this.renderSquare(0, 1)}
-          {this.renderSquare(0, 2)}
-        </div>
-        <div className="board-row" col={1}>
-          {this.renderSquare(1, 0)}
-          {this.renderSquare(1, 1)}
-          {this.renderSquare(1, 2)}
-        </div>
-        <div className="board-row" col={2}>
-          {this.renderSquare(2, 0)}
-          {this.renderSquare(2, 1)}
-          {this.renderSquare(2, 2)}
-        </div>
+        {this.renderColumn()}
       </div>
     );
   }
