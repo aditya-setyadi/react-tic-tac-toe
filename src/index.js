@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import calculateWinner from './winner.js';
+import { calculateWinner } from './winner.js';
 import Board from './board.js';
 import './index.css';
 
@@ -50,7 +50,7 @@ class Game extends React.Component {
       newSquares[i] = current.squares[i].slice();
     }
 
-    if (calculateWinner(newSquares) || newSquares[i][j]) {
+    if (calculateWinner(newSquares).by || newSquares[i][j]) {
       return;
     }
 
@@ -97,25 +97,28 @@ class Game extends React.Component {
   }
 
   renderNextMoveStatus(winner) {
-    if (winner) {
+    if (winner && this.state.maxStepNumber !== 9) {
       return `Winner: ${winner}`;
+    } else if (!winner && this.state.maxStepNumber === 9 && this.state.currentStepNumber === 9) {
+      return `DRAW GAME !!`;
     } else {
       return `Next player turn: ${this.state.xIsNext ? 'X' : 'O'}`;
     }
   }
-
 
   render() {
     const history = this.state.history;
     const stepNumber = this.state.currentStepNumber;
     const winner = calculateWinner(history[stepNumber].squares);
     const moves = this.renderHistoryMove(this.state.sort);
-    const status = this.renderNextMoveStatus(winner);
+    const status = this.renderNextMoveStatus(winner.by);
 
     return (
       <div className="game">
         <div className="game-board">
           <Board
+            columnWin={winner.detail ? winner.detail.column : 'no-winner'}
+            rowWin={winner.detail ? winner.detail.row : 'no-winner'}
             squares={history[stepNumber].squares}
             onClick={(i, j) => this.handleBoardClick(i, j)}
           />
